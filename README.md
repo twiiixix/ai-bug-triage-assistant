@@ -12,6 +12,6 @@ cp .env.example .env
 python run.py
 ```
 
-Open `http://127.0.0.1:5000`, create an account, and sign in.
+Open `(https://ai-bug-triage-assistant-7348.onrender.com/login)`, create an account, and sign in.
 
 The app uses rule-based fallback analysis when an OpenAI API key is unavailable.
