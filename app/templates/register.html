@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Register | AI Bug Triage Assistant{% endblock %}
+{% block body %}
+<main class="auth-page">
+    <section class="auth-card">
+        <p class="eyebrow">Create an account</p>
+        <h1>Get started</h1>
+        <p class="auth-copy">Create your private engineering workspace.</p>
+
+        {% include "_messages.html" %}
+
+        <form method="POST">
+            <div class="field-group">
+                <label for="name">Name</label>
+                <input id="name" name="name" required>
+            </div>
+
+            <div class="field-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" name="email" required>
+            </div>
+
+            <div class="field-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password" minlength="8" required>
+            </div>
+
+            <div class="field-group">
+                <label for="confirm_password">Confirm password</label>
+                <input id="confirm_password" type="password" name="confirm_password" minlength="8" required>
+            </div>
+
+            <button type="submit">Create account</button>
+        </form>
+
+        <p class="auth-switch">
+            Already registered?
+            <a href="{{ url_for('main.login') }}">Sign in</a>
+        </p>
+    </section>
+</main>
+{% endblock %}

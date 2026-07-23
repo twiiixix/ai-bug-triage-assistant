@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block body %}
+<main class="page-shell">
+    <header class="topbar">
+        <div>
+            <span class="topbar-label">Signed in as</span>
+            <strong>{{ current_user.name }}</strong>
+        </div>
+
+        <form method="POST" action="{{ url_for('main.logout') }}">
+            <button type="submit" class="logout-button">Sign out</button>
+        </form>
+    </header>
+
+    {% include "_messages.html" %}
+
+    <section class="hero">
+        <p class="eyebrow">Developer Productivity Tool</p>
+        <h1>AI Bug Triage Assistant</h1>
+        <p class="hero-text">
+            Submit a software bug report and receive an immediate severity
+            assessment, category, possible causes, and recommended debugging steps.
+        </p>
+    </section>
+
+    <section class="analytics-grid">
+        <article class="analytics-card">
+            <p>Total reports</p>
+            <strong>{{ analytics.total }}</strong>
+            <span>All submitted bugs</span>
+        </article>
+        <article class="analytics-card critical-card">
+            <p>Critical</p>
+            <strong>{{ analytics.critical }}</strong>
+            <span>Immediate attention</span>
+        </article>
+        <article class="analytics-card open-card">
+            <p>Open</p>
+            <strong>{{ analytics.open }}</strong>
+            <span>Awaiting resolution</span>
+        </article>
+        <article class="analytics-card resolved-card">
+            <p>Resolved</p>
+            <strong>{{ analytics.resolved }}</strong>
+            <span>Completed reports</span>
+        </article>
+    </section>
+
+    <section class="workspace">
+        <div class="panel form-panel">
+            <div class="panel-heading">
+                <p class="section-label">New report</p>
+                <h2>Describe the issue</h2>
+            </div>
+
+            <form method="POST">
+                <div class="field-group">
+                    <label for="title">Bug title</label>
+                    <input id="title" name="title" value="{{ bug.title if bug else '' }}" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="description">Bug description</label>
+                    <textarea id="description" name="description" required>{{ bug.description if bug else '' }}</textarea>
+                </div>
+
+                <button type="submit">Analyze bug</button>
+            </form>
+        </div>
+
+        <div class="panel results-panel">
+            {% if bug and analysis %}
+                <div class="panel-heading">
+                    <p class="section-label">Triage results</p>
+                    <h2>{{ bug.title }}</h2>
+                </div>
+
+                <div class="badge-row">
+                    <span class="badge severity-{{ analysis.severity|lower }}">
+                        {{ analysis.severity }} severity
+                    </span>
+                    <span class="badge category-badge">{{ analysis.category }}</span>
+                </div>
+
+                <div class="result-block">
+                    <h3>Summary</h3>
+                    <p>{{ analysis.summary }}</p>
+                </div>
+
+                <div class="result-block">
+                    <h3>Possible causes</h3>
+                    <ul>
+                        {% for cause in analysis.possible_causes %}
+                            <li>{{ cause }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="result-block">
+                    <h3>Recommended steps</h3>
+                    <ul>
+                        {% for step in analysis.recommended_steps %}
+                            <li>{{ step }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">AI</div>
+                    <h2>Your analysis will appear here</h2>
+                    <p>Submit a report to generate triage guidance.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="history-section">
+        <div class="history-heading">
+            <div>
+                <p class="section-label">Saved reports</p>
+                <h2>Recent bug history</h2>
+            </div>
+            <span class="history-count">{{ recent_bugs|length }} reports</span>
+        </div>
+
+        <form method="GET" class="filter-bar">
+            <input type="text" name="search" placeholder="Search bug reports" value="{{ search_term }}">
+
+            <select name="severity">
+                <option value="">All severities</option>
+                {% for value in ["Critical", "High", "Medium", "Low"] %}
+                    <option value="{{ value }}" {% if severity_filter == value %}selected{% endif %}>
+                        {{ value }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="status">
+                <option value="">All statuses</option>
+                {% for value in ["Open", "In Progress", "Resolved"] %}
+                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                        {{ value }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="filter-button">Apply filters</button>
+            <a href="{{ url_for('main.home') }}" class="clear-filters">Clear</a>
+        </form>
+
+        {% if recent_bugs %}
+            <div class="history-grid">
+                {% for report in recent_bugs %}
+                    <article class="history-card">
+                        <div class="history-card-top">
+                            <span class="bug-id">BUG-{{ "%04d"|format(report.id) }}</span>
+
+                            <form method="POST"
+                                  action="{{ url_for('main.update_bug_status', bug_id=report.id) }}"
+                                  class="status-form">
+                                <select name="status" onchange="this.form.submit()">
+                                    {% for value in ["Open", "In Progress", "Resolved"] %}
+                                        <option value="{{ value }}" {% if report.status == value %}selected{% endif %}>
+                                            {{ value }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </div>
+
+                        <h3>{{ report.title }}</h3>
+                        <p>{{ report.summary }}</p>
+
+                        <div class="history-meta">
+                            <span class="badge severity-{{ report.severity|lower }}">{{ report.severity }}</span>
+                            <span class="badge category-badge">{{ report.category }}</span>
+                        </div>
+
+                        <div class="card-actions">
+                            <a href="{{ url_for('main.edit_bug', bug_id=report.id) }}" class="edit-link">Edit</a>
+
+                            <form method="POST"
+                                  action="{{ url_for('main.delete_bug', bug_id=report.id) }}"
+                                  onsubmit="return confirm('Delete this bug report?');">
+                                <button type="submit" class="delete-button">Delete</button>
+                            </form>
+                        </div>
+
+                        <time>{{ report.created_at.strftime("%b %d, %Y at %I:%M %p") }}</time>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="history-empty">No reports found.</div>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}

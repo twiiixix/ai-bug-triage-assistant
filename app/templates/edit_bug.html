@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Edit Bug | AI Bug Triage Assistant{% endblock %}
+{% block body %}
+<main class="page-shell">
+    <section class="edit-shell">
+        <a href="{{ url_for('main.home') }}" class="back-link">← Back to dashboard</a>
+
+        <div class="panel edit-panel">
+            <div class="panel-heading">
+                <p class="section-label">Edit report</p>
+                <h1>BUG-{{ "%04d"|format(report.id) }}</h1>
+            </div>
+
+            {% include "_messages.html" %}
+
+            <form method="POST">
+                <div class="field-group">
+                    <label for="title">Bug title</label>
+                    <input id="title" name="title" value="{{ report.title }}" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="description">Bug description</label>
+                    <textarea id="description" name="description" required>{{ report.description }}</textarea>
+                </div>
+
+                <div class="field-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" class="full-select">
+                        {% for value in ["Open", "In Progress", "Resolved"] %}
+                            <option value="{{ value }}" {% if report.status == value %}selected{% endif %}>
+                                {{ value }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit">Save changes</button>
+            </form>
+        </div>
+    </section>
+</main>
+{% endblock %}
